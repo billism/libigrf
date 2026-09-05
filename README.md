@@ -211,6 +211,29 @@ extern "C" {
 The library exposes a plain C ABI and can therefore be wrapped by Python
 or other languages in the future; no binding ships with this project.
 
+## Performance
+
+Measured with `tools/benchmark.c` (build it via the `igrf_benchmark`
+target) on 100000 deterministic global points, best of 5, GCC 15.1.0
+`-O3`, single-threaded, Intel Core Ultra 7 (Meteor Lake), Windows 11:
+
+| scenario                       | per point | throughput      |
+| ------------------------------ | --------- | --------------- |
+| single-point geodetic          | 4.08 µs   | ~245 000 pts/s  |
+| single-point geocentric        | 3.90 µs   | ~256 000 pts/s  |
+| fixed-time batch geodetic      | 3.80 µs   | ~263 000 pts/s  |
+| fixed-time batch geocentric    | 3.62 µs   | ~276 000 pts/s  |
+| varying-time batch (distinct years) | 3.95 µs | ~253 000 pts/s |
+| varying-time batch (same year) | 3.81 µs   | ~262 000 pts/s  |
+
+The cost is dominated by the field evaluation itself (Legendre
+recursion and summation, plus one `sin`/`cos` pair per order); the
+per-call preparation that batches avoid is worth roughly 5–7%, and a
+coefficient preparation for a new decimal year adds ~0.15 µs per
+point. Model loading (parsing `igrf14.shc`) takes ~0.3 ms. Use a
+Release build for any measurement; unoptimized builds are several
+times slower.
+
 ## Reference validation
 
 The regression datasets in `tests/reference/` were generated with
