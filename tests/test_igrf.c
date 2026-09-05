@@ -36,6 +36,9 @@ int main(void)
     gd.lon_deg = 0.0;
     gd.lat_deg = 0.0;
     gd.height_km = 0.0;
+    gc.r_km = 6371.2;
+    gc.theta_deg = 90.0;
+    gc.phi_deg = 0.0;
     CHECK_STATUS(igrf_compute_geodetic(m, 1899.9999, &gd, &ned),
                  IGRF_ERROR_YEAR_OUT_OF_RANGE);
     CHECK_STATUS(igrf_compute_geodetic(m, 2030.0000001, &gd, &ned),
@@ -44,9 +47,6 @@ int main(void)
                  IGRF_ERROR_YEAR_OUT_OF_RANGE);
     CHECK_STATUS(igrf_compute_geocentric(m, 2030.0000001, &gc, &sph),
                  IGRF_ERROR_YEAR_OUT_OF_RANGE);
-    gc.r_km = 6371.2;
-    gc.theta_deg = 90.0;
-    gc.phi_deg = 0.0;
 
     /* epoch endpoints themselves are valid */
     CHECK_STATUS(igrf_compute_geodetic(m, 1900.0, &gd, &ned), IGRF_OK);
