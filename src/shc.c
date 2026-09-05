@@ -88,6 +88,17 @@ static int shc_read_line(FILE *fp, char *buf, size_t cap)
     return fgets(buf, (int)cap, fp) != NULL;
 }
 
+/* A data line is any line containing non-whitespace (blank lines are
+ * skipped by the callers, like the reference implementation skips
+ * them implicitly through its token parsing). */
+static int shc_line_is_data(const char *line)
+{
+    while (*line != '\0' && isspace((unsigned char)*line)) {
+        line++;
+    }
+    return *line != '\0';
+}
+
 static void shc_free_model(struct igrf_model *model)
 {
     if (model != NULL) {
@@ -143,6 +154,9 @@ igrf_model_t *igrf_model_load(const char *filename)
             header_buf[3] == '#') {
             continue;
         }
+        if (!shc_line_is_data(header_buf)) {
+            continue; /* blank line */
+        }
 
         cursor = header_buf;
         if (shc_parse_long(shc_next_token(&cursor), &n_min) != 0 ||
@@ -197,8 +211,7 @@ igrf_model_t *igrf_model_load(const char *filename)
         if (!shc_read_line(fp, line, line_cap)) {
             goto fail; /* epoch line missing */
         }
-        if (line[0] == '#' || line[0] == '\0' || line[0] == '\n' ||
-            line[0] == '\r') {
+        if (line[0] == '#' || !shc_line_is_data(line)) {
             continue;
         }
         cursor = line;
@@ -230,8 +243,7 @@ igrf_model_t *igrf_model_load(const char *filename)
         if (!shc_read_line(fp, line, line_cap)) {
             break; /* EOF: end of coefficient data */
         }
-        if (line[0] == '#' || line[0] == '\0' || line[0] == '\n' ||
-            line[0] == '\r') {
+        if (line[0] == '#' || !shc_line_is_data(line)) {
             continue;
         }
 
