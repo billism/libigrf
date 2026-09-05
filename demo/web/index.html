@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>libigrf demo</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+  <h1>IGRF field calculator</h1>
+  <p class="subtitle">
+    Powered by <strong>libigrf</strong> <span id="version"></span>
+    — International Geomagnetic Reference Field
+  </p>
+
+  <form id="form">
+    <div class="row">
+      <label for="model">Model file</label>
+      <select id="model"></select>
+    </div>
+
+    <div class="row">
+      <label for="year">Decimal year</label>
+      <input id="year" type="number" step="0.0000001" value="2026.5" required>
+      <div class="hint">
+        or pick a date:
+        <input id="date" type="datetime-local">
+        <button type="button" id="convert">→ decimal year</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label>Coordinate type</label>
+      <span class="choice">
+        <label class="inline"><input type="radio" name="coord"
+               value="geodetic" checked> Geodetic</label>
+        <label class="inline"><input type="radio" name="coord"
+               value="geocentric"> Geocentric</label>
+      </span>
+    </div>
+
+    <fieldset id="geodetic-fields">
+      <legend>Geodetic (WGS84)</legend>
+      <div class="row">
+        <label for="lon">Longitude [°E]</label>
+        <input id="lon" type="number" step="any" value="121.5" required>
+      </div>
+      <div class="row">
+        <label for="lat">Latitude [°]</label>
+        <input id="lat" type="number" step="any" value="25.0" required>
+      </div>
+      <div class="row">
+        <label for="height">Height [km]</label>
+        <input id="height" type="number" step="any" value="0" required>
+      </div>
+    </fieldset>
+
+    <fieldset id="geocentric-fields" hidden>
+      <legend>Geocentric spherical</legend>
+      <div class="row">
+        <label for="r">r [km]</label>
+        <input id="r" type="number" step="any" value="6371.2" required>
+      </div>
+      <div class="row">
+        <label for="theta">Colatitude θ [°]</label>
+        <input id="theta" type="number" step="any" value="90" required>
+      </div>
+      <div class="row">
+        <label for="phi">Longitude φ [°E]</label>
+        <input id="phi" type="number" step="any" value="0" required>
+      </div>
+    </fieldset>
+
+    <button type="submit" id="calculate">Calculate</button>
+  </form>
+
+  <section id="result" hidden>
+    <h2>Result</h2>
+    <p id="meta"></p>
+    <table id="geodetic-result">
+      <tr><th>X (north)</th><td id="X"></td><th>nT</th></tr>
+      <tr><th>Y (east)</th><td id="Y"></td><th>nT</th></tr>
+      <tr><th>Z (down)</th><td id="Z"></td><th>nT</th></tr>
+      <tr><th>H</th><td id="H"></td><th>nT</th></tr>
+      <tr><th>F</th><td id="F"></td><th>nT</th></tr>
+      <tr><th>D (declination)</th><td id="D"></td><th>°</th></tr>
+      <tr><th>I (inclination)</th><td id="I"></td><th>°</th></tr>
+    </table>
+    <table id="geocentric-result">
+      <tr><th>Br (radial)</th><td id="Br"></td><th>nT</th></tr>
+      <tr><th>Bθ (southward)</th><td id="Btheta"></td><th>nT</th></tr>
+      <tr><th>Bφ (eastward)</th><td id="Bphi"></td><th>nT</th></tr>
+      <tr><th>F</th><td id="Fgc"></td><th>nT</th></tr>
+    </table>
+    <p id="error" class="error"></p>
+  </section>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>
