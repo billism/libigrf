@@ -9,12 +9,19 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+# Default to an optimized build; performance-sensitive users should not
+# have to know to pass -DCMAKE_BUILD_TYPE=Release.
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 # The library builds as a static library by default; configure with
 # -DBUILD_SHARED_LIBS=ON to produce a shared library (.dll/.so) instead.
 option(BUILD_SHARED_LIBS "Build libigrf as a shared library" OFF)
 option(IGRF_BUILD_DEMO "Build the localhost web demo" ON)
 option(IGRF_BUILD_TESTS "Build the test suite" ON)
 option(IGRF_BUILD_EXAMPLES "Build the C examples" ON)
+option(IGRF_BUILD_BENCHMARK "Build the benchmark tool" ON)
 
 add_library(igrf
     src/igrf.c
@@ -71,6 +78,14 @@ if(IGRF_BUILD_DEMO)
     # `igrf_demo` runs with its default paths from the build dir.
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_BINARY_DIR})
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/demo/web DESTINATION ${CMAKE_BINARY_DIR}/demo)
+endif()
+
+# ------------------------------------------------------------------
+# Benchmark
+# ------------------------------------------------------------------
+if(IGRF_BUILD_BENCHMARK)
+    add_executable(igrf_benchmark tools/benchmark.c)
+    target_link_libraries(igrf_benchmark PRIVATE igrf::igrf)
 endif()
 
 # ------------------------------------------------------------------
