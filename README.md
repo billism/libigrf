@@ -23,8 +23,8 @@ behind a small public API of plain C.
 - Geodetic input (WGS84): returns local NED components `X, Y, Z`
 - Geocentric spherical input: returns `Br, Btheta, Bphi`
 - Single-point, fixed-time batch and varying-time batch computation
-- Linear interpolation of Gauss coefficients between model epochs
-  (decimal-year space, no silent extrapolation)
+- Linear interpolation of Gauss coefficients between model epochs on
+  the uniform elapsed-time axis (like ppigrf; no silent extrapolation)
 - Geodetic → geocentric coordinate conversion
 - Calendar date/time → decimal year conversion
 - Derived elements `H, F, D, I`
@@ -239,7 +239,7 @@ times slower.
 The regression datasets in `tests/reference/` were generated with
 [ppigrf](https://github.com/klaundal/ppigrf) (IAGA-VMOD compatible,
 MIT licensed) using `tools/generate_reference.py`. The regression test
-compares 692 configurations — poles, equator, Greenwich, date line,
+compares 729 configurations — poles, equator, Greenwich, date line,
 longitude normalization cases, 0–50000 km altitudes, exact epochs and
 mid-interval times across 1900–2030 — with a maximum absolute error of
 about 5e-08 nT (tolerance 1e-04 nT or 1e-09 relative). See

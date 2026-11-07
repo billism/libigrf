@@ -7,35 +7,40 @@ IAGA-VMOD/ppigrf reference behaviour, and otherwise choose the simplest
 KISS-compliant option. Nothing here changes the public API mandated by
 the specification.
 
-## 1. Time interpolation space (decimal year vs timestamp)
+## 1. Time interpolation space (elapsed time, like ppigrf)
 
-The specification mandates linear interpolation of the Gauss
-coefficients between epochs **in decimal-year space**:
+The specification's §6.3 formula interpolates the Gauss coefficients
+between epochs in **decimal-year space**:
 
 ```text
 f = (year - epoch1) / (epoch2 - epoch1)
 ```
 
-ppigrf (via pandas `interpolate(method='time')`) interpolates in
-**timestamp space**. The two are not equivalent, because the decimal
-year is a piecewise-linear (per-year) function of real time: a point at
-decimal year 2022.5 has timestamp-space interpolation parameter
-0.50027 between the 2020 and 2025 epochs, not 0.5. The resulting
-coefficient difference can reach ~0.05 nT.
+The decimal year, however, is a piecewise-linear (per-year) function of
+real time (365 vs 366 days), so this differs from ppigrf (via pandas
+`interpolate(method='time')`), which interpolates linearly in **elapsed
+time**.  At the same physical instant the two conventions select
+slightly different coefficient sets — a field-level difference of up to
+~0.1–0.2 nT with the current generation's strong secular variation
+(measured; the full analysis lives in
+[docs/DECIMAL_YEAR_VS_TIMESTAMP.md](docs/DECIMAL_YEAR_VS_TIMESTAMP.md)).
 
-libigrf follows the specification (decimal-year space). For the
-regression comparison, `tools/generate_reference.py` therefore
-evaluates ppigrf at the timestamp
+**Decision (2026-11-07): libigrf interpolates in elapsed-time space,
+matching the IAGA-VMOD/ppigrf reference behaviour.**  This follows the
+specification's own tie-breaker (prefer the IAGA-VMOD/ppigrf reference
+behaviour where the specification leaves room) and intentionally
+supersedes the literal decimal-year formula above.  The public API is
+unchanged: callers still pass a decimal year, which the library maps
+onto a uniform day axis with the standard 365/366 day-count — the
+exact inverse of `igrf_datetime_to_decimal_year()` and identical to
+ppigrf's `yearfrac_to_datetime()` convention.
 
-```text
-t = T1 + f * (T2 - T1)
-```
-
-so that ppigrf's interpolation parameter equals the one libigrf uses,
-and the comparison isolates the field computation itself. With that
-alignment the two implementations agree to ~5e-08 nT. Comparing at
-unaligned timestamps would show differences up to ~0.1 nT that are pure
-convention, not error.
+For the regression comparison, `tools/generate_reference.py` therefore
+evaluates ppigrf directly at the timestamp of each requested decimal
+year.  Both implementations then use identical coefficients and the
+comparison isolates the field computation itself: they agree to
+~5e-08 nT over the 729-row dataset (which includes 2027.5, the
+mid-interval case that discriminates between the two conventions).
 
 ## 2. Pole handling (theta = 0 / theta = 180)
 
