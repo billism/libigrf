@@ -125,7 +125,6 @@ igrf_model_t *igrf_model_load(const char *filename)
     unsigned char *seen = NULL;
     double prev_epoch = 0.0;
     long i;
-    long n, m;
     size_t missing = 0;
 
     if (filename == NULL) {
@@ -293,8 +292,8 @@ igrf_model_t *igrf_model_load(const char *filename)
     }
 
     /* --- completeness: every (n, m) of the expansion must be present --- */
-    for (n = n_min; n <= n_max; n++) {
-        for (m = 0; m <= n; m++) {
+    for (long n = n_min; n <= n_max; n++) {
+        for (long m = 0; m <= n; m++) {
             if (!(seen[IGRF_IDX(n, m, model->n_max)] & 1)) {
                 missing = 1;
             }

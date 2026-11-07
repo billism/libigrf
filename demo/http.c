@@ -27,6 +27,11 @@
 #  define http_close_socket close
 #endif
 
+/* Loopback address: not defined by macOS's netinet/in.h. */
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK 0x7F000001 /* 127.0.0.1 */
+#endif
+
 static void http_platform_init(void)
 {
 #ifdef _WIN32

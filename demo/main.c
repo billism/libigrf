@@ -31,6 +31,11 @@
 #include "http.h"
 #include "igrf.h"
 
+/* MSVC's C mode does not provide the POSIX S_ISDIR macro. */
+#ifndef S_ISDIR
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#endif
+
 #define MAX_MODELS 16
 #define MAX_MODEL_NAME 64
 

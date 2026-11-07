@@ -83,11 +83,11 @@ int main(void)
     CHECK_STATUS(igrf_geodetic_to_geocentric(&gd, &gc),
                  IGRF_ERROR_INVALID_INPUT);
     gd.lat_deg = 0.0;
-    gd.lon_deg = 0.0 / 0.0;
+    gd.lon_deg = NAN;
     CHECK_STATUS(igrf_geodetic_to_geocentric(&gd, &gc),
                  IGRF_ERROR_INVALID_INPUT);
     gd.lon_deg = 0.0;
-    gd.height_km = 1.0 / 0.0;
+    gd.height_km = INFINITY;
     CHECK_STATUS(igrf_geodetic_to_geocentric(&gd, &gc),
                  IGRF_ERROR_INVALID_INPUT);
 

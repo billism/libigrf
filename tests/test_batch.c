@@ -123,13 +123,13 @@ int main(void)
                     "varying geodetic batch Z");
 
         {
-            igrf_geocentric_t p;
+            igrf_geocentric_t gp;
 
-            p.r_km = gct[i].r_km;
-            p.theta_deg = gct[i].theta_deg;
-            p.phi_deg = gct[i].phi_deg;
+            gp.r_km = gct[i].r_km;
+            gp.theta_deg = gct[i].theta_deg;
+            gp.phi_deg = gct[i].phi_deg;
             CHECK_STATUS(igrf_compute_geocentric(m, gct[i].decimal_year,
-                                                 &p, &spht_single[i]),
+                                                 &gp, &spht_single[i]),
                          IGRF_OK);
         }
         CHECK_CLOSE(spht_batch[i].Br_nT, spht_single[i].Br_nT, 1e-9,

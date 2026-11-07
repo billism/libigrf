@@ -162,13 +162,13 @@ int main(void)
     CHECK_STATUS(igrf_compute_geocentric(NULL, 2025.0, &gc, &sph),
                  IGRF_ERROR_NULL_ARGUMENT);
 
-    CHECK_STATUS(igrf_compute_geodetic(m, 0.0 / 0.0, &gd, &ned),
+    CHECK_STATUS(igrf_compute_geodetic(m, NAN, &gd, &ned),
                  IGRF_ERROR_INVALID_INPUT);
     gd.lat_deg = 91.0;
     CHECK_STATUS(igrf_compute_geodetic(m, 2025.0, &gd, &ned),
                  IGRF_ERROR_INVALID_INPUT);
     gd.lat_deg = 0.0;
-    gd.height_km = 1.0 / 0.0;
+    gd.height_km = INFINITY;
     CHECK_STATUS(igrf_compute_geodetic(m, 2025.0, &gd, &ned),
                  IGRF_ERROR_INVALID_INPUT);
 
@@ -186,7 +186,7 @@ int main(void)
     CHECK_STATUS(igrf_compute_geocentric(m, 2025.0, &gc, &sph),
                  IGRF_ERROR_INVALID_INPUT);
     gc.theta_deg = 90.0;
-    gc.phi_deg = 0.0 / 0.0;
+    gc.phi_deg = NAN;
     CHECK_STATUS(igrf_compute_geocentric(m, 2025.0, &gc, &sph),
                  IGRF_ERROR_INVALID_INPUT);
 

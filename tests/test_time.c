@@ -69,10 +69,10 @@ int main(void)
     CHECK(isnan(igrf_datetime_to_decimal_year(2021, 1, 1, 0, 0, -0.5)),
           "negative second invalid");
     CHECK(isnan(igrf_datetime_to_decimal_year(2021, 1, 1, 0, 0,
-                                              0.0 / 0.0)),
+                                              NAN)),
           "NaN second invalid");
     CHECK(isnan(igrf_datetime_to_decimal_year(2021, 1, 1, 0, 0,
-                                              1.0 / 0.0)),
+                                              INFINITY)),
           "Inf second invalid");
 
     return tt_report("test_time");
