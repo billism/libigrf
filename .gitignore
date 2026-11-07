@@ -2,23 +2,16 @@
 /build*/
 /out/
 
-# Vendored reference implementation (development-time only, not part of libigrf)
-/ppigrf-main/
-
-# Original model files as provided at the repository root.
-# Committed copies live in data/ (lowercase names).
-/IGRF13.shc
-/IGRF14.shc
-
-# The task specification document (input, not a product artifact)
+# The original task specification document (input, not a product artifact)
 /IGRF C Library*.md
 
 # Python
 __pycache__/
 *.pyc
 
-# Editors / OS
+# Editors / OS / agent tooling
 .vscode/
 .idea/
+.zcode/
 Thumbs.db
 .DS_Store
