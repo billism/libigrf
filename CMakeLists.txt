@@ -34,6 +34,12 @@ target_include_directories(igrf
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>)
 
+# Math library: separate libm on Linux (and a harmless no-op on
+# macOS); built into the CRT on Windows, where no m library exists.
+if(UNIX)
+    target_link_libraries(igrf PUBLIC m)
+endif()
+
 set_target_properties(igrf PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}

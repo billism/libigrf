@@ -14,6 +14,10 @@
  *
  * Usage: igrf_benchmark [model.shc] [n_points]
  */
+#if !defined(_WIN32) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 200809L /* clock_gettime, CLOCK_MONOTONIC */
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

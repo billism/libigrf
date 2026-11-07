@@ -3,6 +3,10 @@
  * Uses Winsock2 on Windows and POSIX sockets elsewhere; only GET
  * requests are understood and connections are handled one at a time.
  */
+#if !defined(_WIN32) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 200809L /* struct timeval, SO_RCVTIMEO */
+#endif
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +22,7 @@
 #  include <arpa/inet.h>
 #  include <netinet/in.h>
 #  include <sys/socket.h>
+#  include <sys/time.h>
 #  include <unistd.h>
 #  define http_close_socket close
 #endif

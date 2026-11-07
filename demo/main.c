@@ -12,6 +12,10 @@
  *   port       default: 8080
  *   web_dir    default: first of demo/web, web that exists
  */
+#if !defined(_WIN32) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 200809L /* opendir, S_ISDIR, stat */
+#endif
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,7 +79,7 @@ static void add_model(const char *path, const char *filename)
 static int is_directory(const char *path)
 {
     struct stat st;
-    return stat(path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR;
+    return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
 }
 
 static void load_model_dir(const char *dir)
