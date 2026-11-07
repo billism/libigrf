@@ -64,17 +64,16 @@ extern "C" {
 
 /*
  * Symbol visibility for shared-library builds.
- * When libigrf is built as a DLL by CMake, igrf_EXPORTS is defined
- * while compiling the library and the public functions are exported;
- * on non-Windows platforms (and static builds) the macro is empty.
+ * When libigrf is built as a DLL by CMake, the toolchain defines
+ * igrf_EXPORTS while compiling the library and the public functions
+ * are exported with dllexport.  On the consumer side (and for static
+ * and non-Windows builds) the macro is empty: MSVC resolves the
+ * functions through the import-library thunks, and MinGW/Unix need
+ * no decoration at all.
  */
 #ifndef IGRF_API
-#  if defined(_WIN32) && defined(igrf_SHARED)
-#    if defined(igrf_EXPORTS)
-#      define IGRF_API __declspec(dllexport)
-#    else
-#      define IGRF_API __declspec(dllimport)
-#    endif
+#  if defined(_WIN32) && defined(igrf_EXPORTS)
+#    define IGRF_API __declspec(dllexport)
 #  else
 #    define IGRF_API
 #  endif
