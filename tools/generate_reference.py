@@ -11,23 +11,18 @@ The datasets cover, per the libigrf implementation specification:
     spread of global locations at 0..50000 km altitude
   - both geodetic (X/Y/Z) and geocentric (Br/Btheta/Bphi) output
 
-Interpolation-convention alignment
-----------------------------------
-libigrf interpolates Gauss coefficients linearly in DECIMAL-YEAR
-space between epochs (as its specification mandates):
-
-    f = (Y - E1) / (E2 - E1)
-
-ppigrf (pandas) interpolates linearly in TIMESTAMP space.  To compare
-the two implementations exactly, this generator evaluates ppigrf at
-the timestamp
-
-    t = T1 + f * (T2 - T1)
-
-where T1/T2 are the timestamps of the bracketing epochs.  At that
-timestamp ppigrf's interpolation parameter equals f, so both
-implementations use identical coefficients and any difference is due
-to the field computation itself, not the time convention.
+Shared time convention
+----------------------
+Both implementations interpolate the Gauss coefficients linearly on
+the uniform elapsed-time axis: libigrf maps the decimal year to days
+with the 365/366 day-count (the exact inverse of its
+igrf_datetime_to_decimal_year), ppigrf maps it to a timestamp with
+its own yearfrac_to_datetime.  The two mappings agree exactly, so
+this generator evaluates ppigrf directly at the timestamp of each
+requested decimal year; any difference is due to the field
+computation itself, not the time convention.  (libigrf adopted this
+convention on 2026-11-07, superseding its original decimal-year
+interpolation; see docs/DECIMAL_YEAR_VS_TIMESTAMP.md.)
 
 Exact poles: at theta = 0 (geodetic lat = +90) ppigrf produces NaN
 for the eastward component (a literal 0/0 in its longitude sum), so
@@ -49,7 +44,7 @@ sys.path.insert(0, os.path.join(ROOT, "ppigrf-main", "src"))
 import pandas as pd  # noqa: E402
 
 import ppigrf  # noqa: E402
-from ppigrf.ppigrf import read_shc  # noqa: E402  (not re-exported)
+from ppigrf.ppigrf import read_shc, yearfrac_to_datetime  # noqa: E402
 
 REF_DIR = os.path.join(ROOT, "tests", "reference")
 
@@ -66,6 +61,8 @@ TIMES_IGRF14 = [
     2000.0, 2002.5, 2005.0,
     2010.0, 2020.0, 2022.5,
     2025.0, 2025.5, 2027.0,
+    2027.5,  # mid-interval in 2025-2030 (contains leap year 2028):
+             # discriminates elapsed-time from decimal-year interpolation
     2030.0,
 ]
 
@@ -138,21 +135,16 @@ def epoch_timestamps(coeff_fn):
 
 
 def decimal_year_to_timestamp(y, epochs):
-    """Timestamp at which ppigrf's timestamp-space interpolation equals
-    libigrf's decimal-year-space interpolation for decimal year y."""
+    """Timestamp at which both implementations evaluate the model.
+
+    libigrf maps a decimal year to the uniform elapsed-time axis with
+    the 365/366 day-count (the exact inverse of its
+    igrf_datetime_to_decimal_year); ppigrf maps it to a timestamp with
+    its own yearfrac_to_datetime.  The two mappings agree exactly, so
+    ppigrf is evaluated directly at that timestamp."""
     if y < epochs[0][0] - 1e-12 or y > epochs[-1][0] + 1e-12:
         raise ValueError("year %r outside model range" % y)
-    # exact epoch
-    for e, ts in epochs:
-        if y == e:
-            return ts
-    for i in range(len(epochs) - 1):
-        e1, t1 = epochs[i]
-        e2, t2 = epochs[i + 1]
-        if e1 < y < e2:
-            f = (y - e1) / (e2 - e1)
-            return t1 + f * (t2 - t1)
-    raise ValueError("year %r not bracketed" % y)
+    return yearfrac_to_datetime([y])[0]
 
 
 def fmt(x):
