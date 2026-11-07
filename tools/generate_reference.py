@@ -20,9 +20,8 @@ igrf_datetime_to_decimal_year), ppigrf maps it to a timestamp with
 its own yearfrac_to_datetime.  The two mappings agree exactly, so
 this generator evaluates ppigrf directly at the timestamp of each
 requested decimal year; any difference is due to the field
-computation itself, not the time convention.  (libigrf adopted this
-convention on 2026-11-07, superseding its original decimal-year
-interpolation; see docs/DECIMAL_YEAR_VS_TIMESTAMP.md.)
+computation itself, not the time convention.  See
+IMPLEMENTATION_NOTES.md section 1 for the full convention analysis.
 
 Exact poles: at theta = 0 (geodetic lat = +90) ppigrf produces NaN
 for the eastward component (a literal 0/0 in its longitude sum), so
@@ -39,7 +38,12 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-sys.path.insert(0, os.path.join(ROOT, "ppigrf-main", "src"))
+
+# Prefer a local ppigrf checkout when present; otherwise the installed
+# ppigrf package is used (pip install ppigrf).
+_LOCAL_PPIGRF = os.path.join(ROOT, "ppigrf-main", "src")
+if os.path.isdir(_LOCAL_PPIGRF):
+    sys.path.insert(0, _LOCAL_PPIGRF)
 
 import pandas as pd  # noqa: E402
 

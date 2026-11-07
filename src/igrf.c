@@ -105,7 +105,7 @@ igrf_status_t igrf__prepare_coefficients(const igrf_model_t *model,
 
     /* strictly between two epochs: linear interpolation on the
      * uniform elapsed-time axis, exactly like the ppigrf reference
-     * implementation (see docs/DECIMAL_YEAR_VS_TIMESTAMP.md for the
+     * implementation (see IMPLEMENTATION_NOTES.md section 1 for the
      * convention analysis behind this decision) */
     for (i = 0; i < n_epochs - 1; i++) {
         if (decimal_year < epochs[i + 1]) {

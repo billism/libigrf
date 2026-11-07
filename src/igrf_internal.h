@@ -55,7 +55,7 @@ struct igrf_model {
  * Linear interpolation between the two neighbouring epochs is
  * performed on the uniform elapsed-time axis: decimal years are
  * mapped to days first, matching the ppigrf reference
- * implementation (see docs/DECIMAL_YEAR_VS_TIMESTAMP.md).
+ * implementation (see IMPLEMENTATION_NOTES.md section 1).
  */
 igrf_status_t igrf__prepare_coefficients(const igrf_model_t *model,
                                          double decimal_year,

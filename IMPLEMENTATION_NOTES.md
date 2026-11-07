@@ -7,7 +7,7 @@ IAGA-VMOD/ppigrf reference behaviour, and otherwise choose the simplest
 KISS-compliant option. Nothing here changes the public API mandated by
 the specification.
 
-## 1. Time interpolation space (elapsed time, like ppigrf)
+## 1. Time interpolation convention (elapsed time, like ppigrf)
 
 The specification's §6.3 formula interpolates the Gauss coefficients
 between epochs in **decimal-year space**:
@@ -16,31 +16,69 @@ between epochs in **decimal-year space**:
 f = (year - epoch1) / (epoch2 - epoch1)
 ```
 
-The decimal year, however, is a piecewise-linear (per-year) function of
-real time (365 vs 366 days), so this differs from ppigrf (via pandas
-`interpolate(method='time')`), which interpolates linearly in **elapsed
-time**.  At the same physical instant the two conventions select
-slightly different coefficient sets — a field-level difference of up to
-~0.1–0.2 nT with the current generation's strong secular variation
-(measured; the full analysis lives in
-[docs/DECIMAL_YEAR_VS_TIMESTAMP.md](docs/DECIMAL_YEAR_VS_TIMESTAMP.md)).
+The decimal year, however, is not a uniform time scale: the mapping
+from calendar instants to decimal years is piecewise linear with a
+kink at every year boundary (1/365 vs 1/366 per day), while elapsed
+time is strictly uniform.  ppigrf (via pandas
+`interpolate(method='time')`) interpolates in **elapsed time**.  The
+two conventions coincide exactly at the epochs and drift in between.
+
+**Worked example (2025–2030 interval, contains leap year 2028, 1826
+days).**  Decimal year 2027.5 (2027 is a common year) is the calendar
+instant 2027-07-02 12:00.  Decimal-year interpolation gives
+f = 0.5 exactly, which corresponds to 2027-07-03 00:00 — a 12-hour
+shift; elapsed-time interpolation gives f = 912.5/1826 ≈ 0.499726.
+(2022.5, by contrast, is useless for demonstrating the difference:
+leap years 2020 and 2024 sit symmetrically around it, so both
+conventions give f = 0.5 there.)
+
+**Measured magnitude.**  Evaluating the two conventions at the same
+instant (2027-07-02 12:00) over five global stations gives a maximum
+component difference of 0.18 nT for 2025–2030 — the strongest secular
+variation of any IGRF generation; the same comparison in 1950–1955
+yields ~0.07 nT.  Equivalently: in decimal-year space the per-day
+coefficient increment differs between common and leap years by exactly
+366/365 ≈ 1.00274, while on the elapsed-time axis it is constant and
+continuous down to the second.
+
+**Relation to the official IGRF definition.**  Secular variation is
+published in nT/year as a linear approximation of the coefficient
+change over the 5-year window, and evaluating
+`g(t) = g(2025.0) + (t − 2025.0)·SV` is a continuous linear ramp in
+which "days" never enter.  The 2030 column of `igrf14.shc` equals the
+2025 column plus 5.0·SV (verified: all 195 implied SV values lie on
+the official 0.1 nT/yr grid to floating-point noise), so linear
+interpolation towards that endpoint is algebraically identical to the
+official SV extrapolation — one "epoch coefficients + linear
+interpolation" scheme covers the whole 1900–2030 range, which is why
+libigrf has no separate SV logic.  The official definition does not
+pin down a day-count; the 365/366 convention is a property of the
+SHC/ppigrf toolchain.
 
 **Decision (2026-11-07): libigrf interpolates in elapsed-time space,
 matching the IAGA-VMOD/ppigrf reference behaviour.**  This follows the
 specification's own tie-breaker (prefer the IAGA-VMOD/ppigrf reference
 behaviour where the specification leaves room) and intentionally
-supersedes the literal decimal-year formula above.  The public API is
-unchanged: callers still pass a decimal year, which the library maps
-onto a uniform day axis with the standard 365/366 day-count — the
-exact inverse of `igrf_datetime_to_decimal_year()` and identical to
-ppigrf's `yearfrac_to_datetime()` convention.
+supersedes the literal decimal-year formula above.  It also makes the
+decimal year ↔ calendar instant round-trip unambiguous: a caller who
+passes `igrf_datetime_to_decimal_year(d)` gets exactly the coefficients
+for the instant `d`, as a user of ppigrf would expect.
 
-For the regression comparison, `tools/generate_reference.py` therefore
-evaluates ppigrf directly at the timestamp of each requested decimal
-year.  Both implementations then use identical coefficients and the
-comparison isolates the field computation itself: they agree to
-~5e-08 nT over the 729-row dataset (which includes 2027.5, the
-mid-interval case that discriminates between the two conventions).
+**Implementation.**  The public API is unchanged: callers still pass a
+decimal year, which the library maps onto a uniform proleptic-Gregorian
+day axis (`igrf__decimal_year_to_days()` in `src/coordinates.c`, using
+Howard Hinnant's `days_from_civil` algorithm).  That mapping is the
+exact inverse of `igrf_datetime_to_decimal_year()` and identical to
+ppigrf's `yearfrac_to_datetime()` convention.  The interpolation
+parameter is then `f = (t − t₁)/(t₂ − t₁)` in days; the range check
+and exact-epoch matching stay in the decimal-year domain (equivalent
+and simpler).  For the regression comparison,
+`tools/generate_reference.py` evaluates ppigrf directly at the
+timestamp of each requested decimal year — both implementations then
+use identical coefficients, and the comparison isolates the field
+computation itself: they agree to ~5e-08 nT over the 729-row dataset
+(which includes 2027.5, the mid-interval case that discriminates
+between the two conventions).
 
 ## 2. Pole handling (theta = 0 / theta = 180)
 
