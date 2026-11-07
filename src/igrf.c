@@ -103,16 +103,20 @@ igrf_status_t igrf__prepare_coefficients(const igrf_model_t *model,
         }
     }
 
-    /* strictly between two epochs: linear interpolation in decimal
-     * year space (specified libigrf behaviour) */
+    /* strictly between two epochs: linear interpolation on the
+     * uniform elapsed-time axis, exactly like the ppigrf reference
+     * implementation (see docs/DECIMAL_YEAR_VS_TIMESTAMP.md for the
+     * convention analysis behind this decision) */
     for (i = 0; i < n_epochs - 1; i++) {
         if (decimal_year < epochs[i + 1]) {
             const double *g1 = model->g + (size_t)i * nm;
             const double *g2 = model->g + (size_t)(i + 1) * nm;
             const double *h1 = model->h + (size_t)i * nm;
             const double *h2 = model->h + (size_t)(i + 1) * nm;
-            const double f = (decimal_year - epochs[i]) /
-                             (epochs[i + 1] - epochs[i]);
+            const double t = igrf__decimal_year_to_days(decimal_year);
+            const double t1 = igrf__decimal_year_to_days(epochs[i]);
+            const double t2 = igrf__decimal_year_to_days(epochs[i + 1]);
+            const double f = (t - t1) / (t2 - t1);
 
             for (k = 0; k < nm; k++) {
                 g[k] = g1[k] + f * (g2[k] - g1[k]);

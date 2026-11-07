@@ -52,13 +52,22 @@ struct igrf_model {
 /*
  * Interpolate the model's Gauss coefficients at decimal_year into
  * caller-provided buffers g/h of IGRF_NM(model->n_max) doubles each.
- * Uses linear interpolation in decimal-year space between the two
- * neighbouring epochs, exactly as specified for libigrf.
+ * Linear interpolation between the two neighbouring epochs is
+ * performed on the uniform elapsed-time axis: decimal years are
+ * mapped to days first, matching the ppigrf reference
+ * implementation (see docs/DECIMAL_YEAR_VS_TIMESTAMP.md).
  */
 igrf_status_t igrf__prepare_coefficients(const igrf_model_t *model,
                                          double decimal_year,
                                          double *g,
                                          double *h);
+
+/*
+ * Map a decimal year onto the uniform elapsed-time axis (proleptic
+ * Gregorian days, 365/366 day-count).  Exact inverse of
+ * igrf_datetime_to_decimal_year(); implemented in coordinates.c.
+ */
+double igrf__decimal_year_to_days(double decimal_year);
 
 /*
  * Evaluate the spherical harmonic field at one geocentric position

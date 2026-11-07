@@ -181,6 +181,39 @@ double igrf_datetime_to_decimal_year(int year,
     return (double)year + day_fraction / days_in_year;
 }
 
+/* Days since 1970-01-01 in the proleptic Gregorian calendar
+ * (Howard Hinnant's days_from_civil algorithm; exact and loop-free
+ * for all reasonable years). */
+static long long days_from_civil(int y, int m, int d)
+{
+    y -= m <= 2;
+    {
+        const long long era = (y >= 0 ? y : y - 399) / 400;
+        const unsigned yoe = (unsigned)(y - era * 400); /* [0, 399] */
+        const unsigned doy =
+            (153u * (unsigned)(m + (m > 2 ? -3 : 9)) + 2u) / 5u +
+            (unsigned)d - 1u; /* [0, 365] */
+        const unsigned doe = yoe * 365u + yoe / 4u - yoe / 100u + doy;
+        return era * 146097LL + (long long)doe - 719468LL;
+    }
+}
+
+/*
+ * Map a decimal year onto the uniform elapsed-time axis (days in the
+ * proleptic Gregorian calendar).  This is the exact inverse of
+ * igrf_datetime_to_decimal_year() and matches the yearfrac-to-
+ * timestamp convention of the ppigrf reference implementation:
+ * start of year + fraction * (365 or 366) days.
+ */
+double igrf__decimal_year_to_days(double decimal_year)
+{
+    int year = (int)floor(decimal_year);
+    double frac = decimal_year - (double)year;
+    double days_in_year = igrf__is_leap_year(year) ? 366.0 : 365.0;
+
+    return (double)days_from_civil(year, 1, 1) + frac * days_in_year;
+}
+
 igrf_status_t igrf_ned_elements(const igrf_ned_t *field,
                                 double *H_nT,
                                 double *F_nT,
