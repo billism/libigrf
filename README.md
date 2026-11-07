@@ -78,7 +78,7 @@ web assets are copied there at configure time:
 ./build/igrf_demo.exe               # then open http://localhost:8080/
 ```
 
-### Linux
+### Linux / macOS
 
 ```bash
 cmake -S . -B build
@@ -98,8 +98,8 @@ cmake --build build-shared -j
 ```
 
 CMake targets: `igrf` (library), `igrf_example`, `igrf_demo`,
-`igrf_tests` (aggregates the seven test executables registered with
-CTest).
+`igrf_benchmark`, and `igrf_tests` (aggregates the seven test
+executables registered with CTest).
 
 The core library sources are plain standard C and contain no
 platform-specific code, so they compile unchanged with the Android NDK
@@ -245,6 +245,14 @@ mid-interval times across 1900–2030 — with a maximum absolute error of
 about 5e-08 nT (tolerance 1e-04 nT or 1e-09 relative). See
 [IMPLEMENTATION_NOTES.md](IMPLEMENTATION_NOTES.md) for the conventions
 behind the comparison.
+
+Regenerating the datasets requires Python with `numpy`, `pandas` and
+`ppigrf` (`pip install ppigrf`); a local ppigrf checkout at
+`ppigrf-main/` is used instead if present.
+
+## Acknowledgements
+
+libigrf was developed with the assistance of GLM 5.3 Flash (Z.ai).
 
 ## License
 
