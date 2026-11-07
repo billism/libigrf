@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-gcc
+            os: ubuntu-latest
+          - name: macos-clang
+            os: macos-latest
+          - name: windows-msvc
+            os: windows-latest
+          - name: windows-mingw
+            os: windows-latest
+            msys2: true
+    defaults:
+      run:
+        shell: ${{ matrix.msys2 && 'msys2 {0}' || 'bash' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MinGW-w64 (UCRT64)
+        if: matrix.msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          msystem: UCRT64
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-make
+
+      - name: Configure (static library)
+        run: >
+          cmake -S . -B build
+          ${{ matrix.msys2 && '-G "MinGW Makefiles"' || '' }}
+          -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Configure (shared library)
+        run: >
+          cmake -S . -B build-shared
+          ${{ matrix.msys2 && '-G "MinGW Makefiles"' || '' }}
+          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+
+      - name: Build shared library
+        run: cmake --build build-shared -j
