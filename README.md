@@ -247,8 +247,7 @@ about 5e-08 nT (tolerance 1e-04 nT or 1e-09 relative). See
 behind the comparison.
 
 Regenerating the datasets requires Python with `numpy`, `pandas` and
-`ppigrf` (`pip install ppigrf`); a local ppigrf checkout at
-`ppigrf-main/` is used instead if present.
+`ppigrf` (`pip install ppigrf`).
 
 ## Acknowledgements
 
